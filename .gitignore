@@ -12,6 +12,8 @@ model/reports/
 .vscode/
 .idea/
 
+.ruff_cache
+
 # Node
 frontend/node_modules/
 frontend/dist/
