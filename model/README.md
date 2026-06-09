@@ -1,0 +1,1 @@
+Creating a simple version of [link](https://www.baseballprospectus.com/news/article/59993/singlearity-using-a-neural-network-to-predict-the-outcome-of-plate-appearances/)
