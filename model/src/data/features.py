@@ -2,6 +2,8 @@
 features.py
 
 adding features to dataset
+Usage:
+python -m src.data.features
 """
 
 import pandas as pd
@@ -53,11 +55,29 @@ def rolling_rate(
     )
 
 
-def add_rolling_rates(df: pd.DataFrame) -> pd.DataFrame:
+def add_rolling_rates(
+    df: pd.DataFrame, window: int = 100, min_pa: int = 20
+) -> pd.DataFrame:
     for group in GROUPS:
         for outcome in OUTCOMES:
             col = f"is_{outcome}"
-            df[f"{group}_100pa_{outcome}_rate"] = rolling_rate(df, group, col)
+            df[f"{group}_{window}pa_{outcome}_rate"] = rolling_rate(
+                df, group, col, window, min_pa
+            )
+    return df
+
+
+def impute_rolling_rates(df: pd.DataFrame, window: int = 100) -> pd.DataFrame:
+    rate_cols = [c for c in df.columns if f"_{window}pa_" in c and "_rate" in c]
+    league_means = df[rate_cols].mean()
+    df[rate_cols] = df[rate_cols].fillna(league_means)
+    return df
+
+
+def add_imputation_flags(df, window: int = 100):
+    for group in GROUPS:
+        rate_cols = [c for c in df.columns if f"{group}_{window}pa_" in c]
+        df[f"{group}_imputed"] = df[rate_cols].isnull().any(axis=1).astype(int)
     return df
 
 
@@ -110,20 +130,32 @@ def remove_columns(df: pd.DataFrame) -> pd.DataFrame:
         "bat_score",
         "fld_score",
         "estimated_woba_using_speedangle",
+        "launch_speed",
+        "balls",
+        "strike",
     ]
-    df = df.drop(columns=to_remove)
+    df = df.drop(columns=[c for c in to_remove if c in df.columns])
     return df
 
 
 def build_dataset(df: pd.DataFrame) -> pd.DataFrame:
     df = sort_by_date(df)
     df = add_park_features(df)
+
+    # remove truncated pa after adding outcome features
     df = add_outcome_features(df)
     df = remove_truncated_pa(df)
-    df = add_rolling_rates(df)
-    df = add_rolling_xwoba(df)
-    df = add_rolling_platoon_xwoba(df)
+
+    window = 100  # 100pa for now
+    df = add_rolling_rates(df, window=window)
+    df = add_rolling_xwoba(df, window=window)
+    df = add_rolling_platoon_xwoba(df, window=window)
     df = add_game_state_features(df)
+
+    # flag before impute
+    df = add_imputation_flags(df, window=window)
+    df = impute_rolling_rates(df, window=window)
+
     df = remove_columns(df)
     return df
 

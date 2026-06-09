@@ -1,3 +1,11 @@
+"""
+constants.py
+
+Some constants to keep in a central location
+"""
+
+# Note: static park factors averaged across 2024-2026.
+# Future: join on (team, season) for year-specific values.
 PARK_FACTORS_HR = {
     "COL": 1.30,
     "CIN": 1.15,
@@ -62,10 +70,12 @@ OUTCOMES = [
     "3B",
     "HR",
     "BB",
+    "IBB",
     "SO",
     "HBP",
     "GDP",
     "SF",
+    "SH",
     "OUT",
 ]
 
@@ -76,11 +86,12 @@ OUTCOME_MAP = {
     "triple": "3B",
     "home_run": "HR",
     "walk": "BB",
-    "intent_walk": "BB",
+    "intent_walk": "IBB",
     "strikeout": "SO",
     "strikeout_double_play": "SO",
     "hit_by_pitch": "HBP",
     "grounded_into_double_play": "GDP",
     "sac_fly": "SF",
+    "sac_bunt": "SH",
     "truncated_pa": "TRC",
 }

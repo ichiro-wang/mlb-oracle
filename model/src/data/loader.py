@@ -2,10 +2,14 @@
 loader.py
 
 pull statcast data from the internet and filter plate appearances
+
+Usage:
+python -m src.data.loader
 """
 
 from pybaseball import statcast
 import pandas as pd
+from datetime import date
 from src.utils.constants import PA_COLS
 from src.utils.paths import DATA_RAW, DATA_INTERMEDIATE
 
@@ -31,6 +35,7 @@ def filter_to_pa(df: pd.DataFrame) -> pd.DataFrame:
     """Keep only the last pitch of each plate appearance."""
     df = df[df["events"].notna()][PA_COLS].copy()
     df["game_date"] = pd.to_datetime(df["game_date"])
+    df = df[df["game_date"] <= pd.Timestamp(date.today())]  # no future rows
     return df.sort_values("game_date").reset_index(drop=True)
 
 
@@ -50,7 +55,7 @@ def load_raw_data(fetch_new: bool = False) -> pd.DataFrame:
     return raw
 
 
-def load_pa_data(fetch_new: bool = False) -> pd.DataFrame:
+def load_pa_data(fetch_new: bool = False, rebuild: bool = False) -> pd.DataFrame:
     """
     Return PA-level dataset.
 
@@ -67,7 +72,7 @@ def load_pa_data(fetch_new: bool = False) -> pd.DataFrame:
         df.to_parquet(PA_FILE, index=False)
         return df
 
-    if PA_FILE.exists():
+    if PA_FILE.exists() and not rebuild:
         print("Loading cached PA data...")
         df = pd.read_parquet(PA_FILE)
         return df
