@@ -4,7 +4,7 @@ Sanity checks and exploratory analysis on the PA feature dataset.
 Run after features.py has produced pa_features.parquet.
 
 Usage:
-    python -m src.data.eda
+python -m src.data.eda
 """
 
 import pandas as pd
@@ -224,13 +224,13 @@ def show_columns(df):
 
 def main():
     df = load()
-    # check_shape(df)
-    # check_missing(df)
-    # check_outcomes(df)
-    # check_imbalance(df)
-    # check_leakage(df)
-    # plot_rolling_features(df)
-    # check_seasons(df)
+    check_shape(df)
+    check_missing(df)
+    check_outcomes(df)
+    check_imbalance(df)
+    check_leakage(df)
+    plot_rolling_features(df)
+    check_seasons(df)
     show_columns(df)
     print("\n✓ EDA complete. Check reports/ for saved plots.")
 

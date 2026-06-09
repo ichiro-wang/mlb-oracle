@@ -69,6 +69,7 @@ OUTCOMES = [
     "OUT",
 ]
 
+# anything not mapped will be null and automatically get filled as OUT
 OUTCOME_MAP = {
     "single": "1B",
     "double": "2B",
@@ -81,4 +82,5 @@ OUTCOME_MAP = {
     "hit_by_pitch": "HBP",
     "grounded_into_double_play": "GDP",
     "sac_fly": "SF",
+    "truncated_pa": "TRC",
 }

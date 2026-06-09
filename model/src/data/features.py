@@ -12,15 +12,15 @@ from src.data.loader import load_pa_data
 GROUPS = ["batter", "pitcher"]
 
 
-def add_park_features(df: pd.DataFrame) -> pd.DataFrame:
-    """adding park factors such as HR factor"""
-    df["park_factors_hr"] = df["home_team"].map(PARK_FACTORS_HR).fillna(1.0)
+def sort_by_date(df: pd.DataFrame) -> pd.DataFrame:
+    """sort the PA's by date once at the start"""
+    df = df.sort_values("game_date")
     return df
 
 
-def remove_truncated_pa(df: pd.DataFrame) -> pd.DataFrame:
-    """remove truncated/incomplete PA's"""
-    df = df[df["events"] != "truncated_pa"]
+def add_park_features(df: pd.DataFrame) -> pd.DataFrame:
+    """adding park factors such as HR factor"""
+    df["park_factors_hr"] = df["home_team"].map(PARK_FACTORS_HR).fillna(1.0)
     return df
 
 
@@ -29,6 +29,12 @@ def add_outcome_features(df: pd.DataFrame) -> pd.DataFrame:
     df["outcome"] = df["events"].map(OUTCOME_MAP).fillna("OUT")
     for outcome in OUTCOMES:
         df[f"is_{outcome}"] = (df["outcome"] == outcome).astype(int)
+    return df
+
+
+def remove_truncated_pa(df: pd.DataFrame) -> pd.DataFrame:
+    """remove truncated/incomplete PA's"""
+    df = df[df["outcome"] != "TRC"]
     return df
 
 
@@ -48,7 +54,6 @@ def rolling_rate(
 
 
 def add_rolling_rates(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.sort_values("game_date")
     for group in GROUPS:
         for outcome in OUTCOMES:
             col = f"is_{outcome}"
@@ -91,15 +96,30 @@ def add_game_state_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def remove_columns(df: pd.DataFrame) -> pd.DataFrame:
-    to_remove = ["on_1b", "on_2b", "on_3b", "inning_topbot"]
+    to_remove = [
+        "on_1b",
+        "on_2b",
+        "on_3b",
+        "inning_topbot",
+        "events",
+        "outcome",
+        "game_pk",
+        "at_bat_number",
+        "home_team",
+        "away_team",
+        "bat_score",
+        "fld_score",
+        "estimated_woba_using_speedangle",
+    ]
     df = df.drop(columns=to_remove)
     return df
 
 
-def build_training_dataset(df: pd.DataFrame) -> pd.DataFrame:
+def build_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    df = sort_by_date(df)
     df = add_park_features(df)
-    df = remove_truncated_pa(df)
     df = add_outcome_features(df)
+    df = remove_truncated_pa(df)
     df = add_rolling_rates(df)
     df = add_rolling_xwoba(df)
     df = add_rolling_platoon_xwoba(df)
@@ -110,7 +130,7 @@ def build_training_dataset(df: pd.DataFrame) -> pd.DataFrame:
 
 def main():
     df = load_pa_data()
-    df = build_training_dataset(df)
+    df = build_dataset(df)
     print("Saving processed PA data")
     df.to_parquet(DATA_PROCESSED / "pa_features.parquet", index=False)
 
