@@ -18,6 +18,12 @@ def add_park_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def remove_truncated_pa(df: pd.DataFrame) -> pd.DataFrame:
+    """remove truncated/incomplete PA's"""
+    df = df[df["events"] != "truncated_pa"]
+    return df
+
+
 def add_outcome_features(df: pd.DataFrame) -> pd.DataFrame:
     """one hot encode for outcomes"""
     df["outcome"] = df["events"].map(OUTCOME_MAP).fillna("OUT")
@@ -50,16 +56,28 @@ def add_rolling_rates(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def add_platoon_features(
+def add_rolling_xwoba(
     df: pd.DataFrame, window: int = 100, min_pa: int = 20
 ) -> pd.DataFrame:
-    df["matchup"] = df["stand"] + "HB/" + df["p_throws"] + "HP"
     for group in GROUPS:
-        df[f"{group}_platoon_woba"] = df.groupby([group, "matchup"])[
+        df[f"{group}_{window}pa_xwoba"] = df.groupby(group)[
             "estimated_woba_using_speedangle"
-        ].transform(lambda x: x.shift(1).rolling(window, min_periods=min_pa).mean())
+        ].transform(lambda x: (x.shift(1).rolling(window, min_periods=min_pa).mean()))
 
-        df[f"{group}_platoon_pa"] = df.groupby([group, "matchup"]).cumcount()
+    return df
+
+
+def add_rolling_platoon_xwoba(
+    df: pd.DataFrame, window: int = 100, min_pa: int = 20
+) -> pd.DataFrame:
+    for group in GROUPS:
+        df[f"{group}_{window}pa_platoon_xwoba"] = df.groupby(
+            [group, "stand", "p_throws"]
+        )["estimated_woba_using_speedangle"].transform(
+            lambda x: x.shift(1).rolling(window, min_periods=min_pa).mean()
+        )
+
+        df[f"{group}_platoon_pa"] = df.groupby([group, "stand", "p_throws"]).cumcount()
     return df
 
 
@@ -72,12 +90,21 @@ def add_game_state_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def remove_columns(df: pd.DataFrame) -> pd.DataFrame:
+    to_remove = ["on_1b", "on_2b", "on_3b", "inning_topbot"]
+    df = df.drop(columns=to_remove)
+    return df
+
+
 def build_training_dataset(df: pd.DataFrame) -> pd.DataFrame:
     df = add_park_features(df)
+    df = remove_truncated_pa(df)
     df = add_outcome_features(df)
     df = add_rolling_rates(df)
-    df = add_platoon_features(df)
+    df = add_rolling_xwoba(df)
+    df = add_rolling_platoon_xwoba(df)
     df = add_game_state_features(df)
+    df = remove_columns(df)
     return df
 
 

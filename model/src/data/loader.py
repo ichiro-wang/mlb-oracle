@@ -29,9 +29,9 @@ def load_statcast(seasons: list[tuple[str, str]]) -> pd.DataFrame:
 
 def filter_to_pa(df: pd.DataFrame) -> pd.DataFrame:
     """Keep only the last pitch of each plate appearance."""
-    pa = df[df["events"].notna()][PA_COLS].copy()
-    pa["game_date"] = pd.to_datetime(pa["game_date"])
-    return pa.sort_values("game_date").reset_index(drop=True)
+    df = df[df["events"].notna()][PA_COLS].copy()
+    df["game_date"] = pd.to_datetime(df["game_date"])
+    return df.sort_values("game_date").reset_index(drop=True)
 
 
 def load_raw_data(fetch_new: bool = False) -> pd.DataFrame:
@@ -81,7 +81,7 @@ def load_pa_data(fetch_new: bool = False) -> pd.DataFrame:
 
 
 def main():
-    df = load_pa_data(fetch_new=False)
+    load_pa_data(fetch_new=False)
 
 
 if __name__ == "__main__":

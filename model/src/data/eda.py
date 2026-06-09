@@ -8,7 +8,6 @@ Usage:
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from src.utils.constants import OUTCOMES
@@ -67,7 +66,7 @@ def check_missing(df: pd.DataFrame) -> pd.DataFrame:
         print(
             f"\n  Rows where ALL rolling features are NaN: "
             f"{df[rate_cols].isnull().all(axis=1).sum():,} "
-            f"({df[rate_cols].isnull().all(axis=1).mean()*100:.1f}%)"
+            f"({df[rate_cols].isnull().all(axis=1).mean() * 100:.1f}%)"
         )
     return miss
 
@@ -206,18 +205,33 @@ def check_seasons(df: pd.DataFrame) -> None:
     print(summary.to_string())
 
 
+# ── 9. Inspect all columns ────────────────────────────────────────────────────
+
+
+def show_columns(df):
+    print("\nNumeric:")
+    print(df.select_dtypes(include="number").columns.tolist())
+
+    print("\nCategorical:")
+    print(df.select_dtypes(include="object").columns.tolist())
+
+    print("\nDatetime:")
+    print(df.select_dtypes(include="datetime").columns.tolist())
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 
 def main():
     df = load()
-    check_shape(df)
-    check_missing(df)
-    check_outcomes(df)
-    check_imbalance(df)
-    check_leakage(df)
-    plot_rolling_features(df)
-    check_seasons(df)
+    # check_shape(df)
+    # check_missing(df)
+    # check_outcomes(df)
+    # check_imbalance(df)
+    # check_leakage(df)
+    # plot_rolling_features(df)
+    # check_seasons(df)
+    show_columns(df)
     print("\n✓ EDA complete. Check reports/ for saved plots.")
 
 
