@@ -75,7 +75,7 @@ OUTCOME_MAP = {
     "triple": "3B",
     "home_run": "HR",
     "walk": "BB",
-    "intentional_walk": "BB",
+    "intent_walk": "BB",
     "strikeout": "SO",
     "strikeout_double_play": "SO",
     "hit_by_pitch": "HBP",
